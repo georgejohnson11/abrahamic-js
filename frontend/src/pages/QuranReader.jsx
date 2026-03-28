@@ -44,6 +44,26 @@ export default function QuranReader() {
   }, [surahId])
 
   useEffect(() => {
+    if (verses.length === 0) return
+    const hash = window.location.hash
+    if (hash) {
+      const el = document.getElementById(hash.slice(1))
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)
+    }
+  }, [verses])
+
+  const goToVerse = (e, suranum, versenum) => {
+    e.stopPropagation()
+    const targetSurah = String(suranum)
+    if (targetSurah === surahId) {
+      const el = document.getElementById(`verse-${versenum}`)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else {
+      navigate(`/quran/${suranum}#verse-${versenum}`)
+    }
+  }
+
+  useEffect(() => {
     if (!showTafseerModal || !selectedVerse) return
     const sid = selectedVerse.suraid ?? parseInt(surahId)
     setTafseerContent('جاري التحميل…')
@@ -153,13 +173,27 @@ export default function QuranReader() {
                     <div
                       key={idx}
                       className="verse mb-3 p-2"
-                      style={{ cursor: 'pointer', borderRight: '3px solid #0d6efd' }}
-                      onClick={() => handleVerseClick(verse, verse.suranum)}
+                      style={{ borderRight: '3px solid #0d6efd' }}
                     >
-                      <div className="text-muted small mb-1" style={{ fontSize: '0.7em' }}>
-                        {verse.suraname} — آية {verse.versenum}
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <span className="text-muted" style={{ fontSize: '0.65em' }}>
+                          {verse.suraname}
+                        </span>
+                        <span
+                          className="badge bg-primary cursor-pointer"
+                          title="انتقل إلى السورة"
+                          style={{ fontSize: '0.6em', cursor: 'pointer' }}
+                          onClick={(e) => goToVerse(e, verse.suranum, verse.versenum)}
+                        >
+                          آية {verse.versenum}
+                        </span>
                       </div>
-                      <span>{verse.verse_txt}</span>
+                      <span
+                        className="cursor-pointer hover-highlight"
+                        onClick={() => handleVerseClick(verse, verse.suranum)}
+                      >
+                        {verse.verse_txt}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -190,6 +224,7 @@ export default function QuranReader() {
                 {verses.map((verse, idx) => (
                   <span key={idx}>
                     <span
+                      id={`verse-${verse.verse_num}`}
                       className="cursor-pointer hover-highlight"
                       onClick={() => handleVerseClick(verse)}
                     >
@@ -198,8 +233,9 @@ export default function QuranReader() {
                     {' '}
                     <span
                       className="badge bg-primary cursor-pointer"
+                      title="انتقل إلى الآية"
                       style={{ fontSize: '0.45em', verticalAlign: 'middle' }}
-                      onClick={() => handleVerseClick(verse)}
+                      onClick={(e) => goToVerse(e, sid, verse.verse_num)}
                     >
                       {verse.verse_num}
                     </span>
