@@ -7,8 +7,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const bible = new BibleDB('./db/bible.db');
-const quran = new QuranDB('./db/quran.db');
+const bible = new BibleDB('../db/bible.db');
+const quran = new QuranDB('../db/quran.db');
 
 // ────── BIBLE ROUTES ──────
 
@@ -114,6 +114,7 @@ app.get('/api/quran/search', (req, res) => {
   }
 });
 
-app.listen(5000, () => {
-  console.log('Backend server running on http://localhost:5000');
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`Backend server running on http://localhost:${PORT}`);
 });
