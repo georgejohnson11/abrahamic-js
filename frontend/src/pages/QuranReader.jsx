@@ -203,20 +203,20 @@ export default function QuranReader() {
             <Alert variant="info">جاري التحميل…</Alert>
           ) : (
             <>
-              <div className="mb-4">
-                <h1>{currentSurah?.name_ar}</h1>
-                <div className="d-flex gap-3 align-items-center">
-                  <label>حجم الخط:</label>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h1 className="mb-0">{currentSurah?.name_ar}</h1>
+                <div className="d-flex align-items-center gap-2">
+                  <label className="text-muted small mb-0">حجم الخط:</label>
                   <input
                     type="range"
                     min="16"
                     max="56"
                     value={fontSize}
                     onChange={(e) => setFontSize(parseInt(e.target.value))}
-                    className="form-range"
-                    style={{ width: '150px' }}
+                    className="form-range mb-0"
+                    style={{ width: '120px' }}
                   />
-                  <span>{fontSize}px</span>
+                  <span className="text-muted small">{fontSize}px</span>
                 </div>
               </div>
 
