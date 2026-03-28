@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Row, Col, Button, Form, ListGroup, Card, Alert, Modal, Badge } from 'react-bootstrap'
+import { Row, Col, Button, Form, ListGroup, Card, Alert, Modal, Badge, Nav } from 'react-bootstrap'
 import { quranAPI } from '../api'
 import '../styles/QuranReader.css'
 
@@ -42,6 +42,15 @@ export default function QuranReader() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [surahId])
+
+  useEffect(() => {
+    if (!showTafseerModal || !selectedVerse) return
+    const sid = selectedVerse.suraid ?? parseInt(surahId)
+    setTafseerContent('جاري التحميل…')
+    quranAPI.getTafseer(sid, selectedTafseerBook, selectedVerse.verse_num)
+      .then(res => setTafseerContent(res.data.tafseer || 'لا يوجد تفسير متاح'))
+      .catch(() => setTafseerContent('حدث خطأ في تحميل التفسير'))
+  }, [selectedTafseerBook, showTafseerModal])
 
   const handleVerseClick = async (verse, overrideSurahId) => {
     setSelectedVerse(verse)
@@ -210,20 +219,21 @@ export default function QuranReader() {
             تفسير الآية {selectedVerse?.verse_num}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div className="mb-3">
-            <Form.Select
-              value={selectedTafseerBook}
-              onChange={(e) => setSelectedTafseerBook(parseInt(e.target.value))}
-            >
-              {tafseerBooks.map(book => (
-                <option key={book.bookid} value={book.bookid}>
+        <Modal.Body className="p-0">
+          <Nav variant="tabs" className="px-3 pt-2">
+            {tafseerBooks.map(book => (
+              <Nav.Item key={book.bookid}>
+                <Nav.Link
+                  active={selectedTafseerBook === book.bookid}
+                  onClick={() => setSelectedTafseerBook(book.bookid)}
+                  style={{ cursor: 'pointer' }}
+                >
                   {book.book_name}
-                </option>
-              ))}
-            </Form.Select>
-          </div>
-          <div className="border p-3" style={{ minHeight: '200px' }}>
+                </Nav.Link>
+              </Nav.Item>
+            ))}
+          </Nav>
+          <div className="p-3" style={{ minHeight: '200px', lineHeight: '2' }}>
             {tafseerContent}
           </div>
         </Modal.Body>
