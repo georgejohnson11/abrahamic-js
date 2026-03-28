@@ -43,16 +43,18 @@ export default function QuranReader() {
       .finally(() => setLoading(false))
   }, [surahId])
 
-  const handleVerseClick = async (verse) => {
+  const handleVerseClick = async (verse, overrideSurahId) => {
     setSelectedVerse(verse)
+    setTafseerContent('جاري التحميل…')
+    setShowTafseerModal(true)
     try {
+      const sid = overrideSurahId ?? parseInt(surahId)
       const res = await quranAPI.getTafseer(
-        parseInt(surahId),
+        sid,
         selectedTafseerBook,
         verse.verse_num
       )
       setTafseerContent(res.data.tafseer || 'لا يوجد تفسير متاح')
-      setShowTafseerModal(true)
     } catch (error) {
       console.error(error)
       setTafseerContent('حدث خطأ في تحميل التفسير')
@@ -143,14 +145,12 @@ export default function QuranReader() {
                       key={idx}
                       className="verse mb-3 p-2"
                       style={{ cursor: 'pointer', borderRight: '3px solid #0d6efd' }}
-                      onClick={() => navigate(`/quran/${verse.suranum}`)}
+                      onClick={() => handleVerseClick(verse, verse.suranum)}
                     >
                       <div className="text-muted small mb-1" style={{ fontSize: '0.7em' }}>
                         {verse.suraname} — آية {verse.versenum}
                       </div>
-                      <span
-                        dangerouslySetInnerHTML={{ __html: verse.verse_txt_highlighted }}
-                      />
+                      <span>{verse.verse_txt}</span>
                     </div>
                   ))}
                 </div>
