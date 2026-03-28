@@ -177,26 +177,27 @@ export default function QuranReader() {
                 </div>
               </div>
 
-              <div className="quran-verses" style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}>
+              <p className="quran-verses" style={{ fontSize: `${fontSize}px`, lineHeight: '2.2', textAlign: 'justify' }}>
                 {verses.map((verse, idx) => (
-                  <div
-                    key={idx}
-                    className="verse mb-3 p-2 cursor-pointer hover-highlight"
-                    onClick={() => handleVerseClick(verse)}
-                  >
-                    <span>{verse.verse_txt}</span>
+                  <span key={idx}>
                     <span
-                      className="ms-2 badge bg-primary cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleVerseClick(verse)
-                      }}
+                      className="cursor-pointer hover-highlight"
+                      onClick={() => handleVerseClick(verse)}
+                    >
+                      {verse.verse_txt}
+                    </span>
+                    {' '}
+                    <span
+                      className="badge bg-primary cursor-pointer"
+                      style={{ fontSize: '0.45em', verticalAlign: 'middle' }}
+                      onClick={() => handleVerseClick(verse)}
                     >
                       {verse.verse_num}
                     </span>
-                  </div>
+                    {' '}
+                  </span>
                 ))}
-              </div>
+              </p>
             </>
           )}
         </Col>
