@@ -36,16 +36,15 @@ export class QuranDB {
   }
 
   search(term) {
-    // Remove diacritics
-    const cleanTerm = term.replace(/[ًٌٍَُِّْ]/g, '');
-    
+    if (!term || !term.trim()) return { count: 0, results: [] };
+
     const results = this.db.prepare(`
       SELECT a.*, s.name_ar AS suraname
       FROM ayat a
       JOIN sura s ON s.suraid = a.suraid
-      WHERE a.verse_txt LIKE ?
+      WHERE a.verse_txt_raw LIKE ?
       ORDER BY a.suraid ASC, a.verse_num ASC
-    `).all('%' + cleanTerm + '%');
+    `).all('%' + term.trim() + '%');
 
     return {
       count: results.length,
@@ -53,21 +52,9 @@ export class QuranDB {
         ...row,
         versenum: row.verse_num,
         suranum: row.suraid,
-        verse_txt_highlighted: this.highlightSearchTerms(row.verse_txt, cleanTerm)
+        verse_txt_highlighted: row.verse_txt
       }))
     };
-  }
-
-  highlightSearchTerms(text, term) {
-    const searchWords = term.split(' ');
-    let highlighted = text;
-    
-    searchWords.forEach(word => {
-      const regex = new RegExp(`(\\b\\w*${word}\\w*\\b)`, 'giu');
-      highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
-    });
-    
-    return highlighted;
   }
 
   close() {
