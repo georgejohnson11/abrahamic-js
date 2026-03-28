@@ -78,11 +78,7 @@ export default function QuranReader() {
     setShowTafseerModal(true)
     try {
       const sid = overrideSurahId ?? parseInt(surahId)
-      const res = await quranAPI.getTafseer(
-        sid,
-        selectedTafseerBook,
-        verse.verse_num
-      )
+      const res = await quranAPI.getTafseer(sid, selectedTafseerBook, verse.verse_num)
       setTafseerContent(res.data.tafseer || 'لا يوجد تفسير متاح')
     } catch (error) {
       console.error(error)
@@ -113,21 +109,20 @@ export default function QuranReader() {
   const currentSurah = surahs.find(s => s.suraid === sid)
 
   return (
-    <div dir="rtl">
+    <div dir="rtl" className="quran-page">
       <Row>
         {/* Sidebar */}
-        <Col md={3} className="mb-4">
+        <Col md={3} className="mb-4 quran-sidebar">
           <Card>
             <Card.Header>السور</Card.Header>
             <Card.Body className="p-0">
-              <ListGroup variant="flush" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              <ListGroup variant="flush" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
                 {surahs.map(surah => (
                   <ListGroup.Item
                     key={surah.suraid}
                     active={surah.suraid === sid}
                     action
                     onClick={() => navigate(`/quran/${surah.suraid}`)}
-                    style={{ cursor: 'pointer' }}
                   >
                     {surah.name_ar}
                   </ListGroup.Item>
@@ -152,9 +147,7 @@ export default function QuranReader() {
                 {searching ? '…' : 'بحث'}
               </Button>
               {searchResults !== null && (
-                <Button variant="outline-secondary" onClick={clearSearch}>
-                  مسح
-                </Button>
+                <Button variant="outline-secondary" onClick={clearSearch}>مسح</Button>
               )}
             </Form.Group>
           </Form>
@@ -162,34 +155,30 @@ export default function QuranReader() {
           {/* Search results */}
           {searchResults !== null ? (
             <div>
-              <h5 className="mb-3">
-                نتائج البحث: <Badge bg="primary">{searchResults.count}</Badge>
+              <h5 className="mb-3" style={{ fontFamily: 'Amiri, serif', color: '#1e6b45' }}>
+                نتائج البحث: <Badge style={{ background: '#1e6b45' }}>{searchResults.count}</Badge>
               </h5>
               {searchResults.count === 0 ? (
                 <Alert variant="warning">لا توجد نتائج.</Alert>
               ) : (
-                <div className="quran-verses" style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}>
+                <div style={{ fontSize: `${fontSize}px` }}>
                   {searchResults.results.map((verse, idx) => (
-                    <div
-                      key={idx}
-                      className="verse mb-3 p-2"
-                      style={{ borderRight: '3px solid #0d6efd' }}
-                    >
+                    <div key={idx} className="quran-search-result mb-3 p-2">
                       <div className="d-flex justify-content-between align-items-center mb-1">
-                        <span className="text-muted" style={{ fontSize: '0.65em' }}>
+                        <span style={{ fontFamily: 'Amiri, serif', fontSize: '0.65em', color: '#5a3e1b' }}>
                           {verse.suraname}
                         </span>
                         <span
-                          className="badge bg-primary cursor-pointer"
+                          className="verse-badge"
                           title="انتقل إلى السورة"
-                          style={{ fontSize: '0.6em', cursor: 'pointer' }}
                           onClick={(e) => goToVerse(e, verse.suranum, verse.versenum)}
+                          style={{ width: 'auto', borderRadius: '12px', padding: '0 0.5em', fontSize: '0.55em' }}
                         >
                           آية {verse.versenum}
                         </span>
                       </div>
                       <span
-                        className="cursor-pointer hover-highlight"
+                        className="hover-highlight"
                         onClick={() => handleVerseClick(verse, verse.suranum)}
                       >
                         {verse.verse_txt}
@@ -200,13 +189,13 @@ export default function QuranReader() {
               )}
             </div>
           ) : loading ? (
-            <Alert variant="info">جاري التحميل…</Alert>
+            <Alert variant="info" style={{ fontFamily: 'Amiri, serif' }}>جاري التحميل…</Alert>
           ) : (
             <>
               <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="mb-0">{currentSurah?.name_ar}</h1>
+                <h1 className="quran-surah-title mb-0">{currentSurah?.name_ar}</h1>
                 <div className="d-flex align-items-center gap-2">
-                  <label className="text-muted small mb-0">حجم الخط:</label>
+                  <label className="text-muted small mb-0" style={{ fontFamily: 'Amiri, serif' }}>حجم الخط:</label>
                   <input
                     type="range"
                     min="16"
@@ -225,16 +214,15 @@ export default function QuranReader() {
                   <span key={idx}>
                     <span
                       id={`verse-${verse.verse_num}`}
-                      className="cursor-pointer hover-highlight"
+                      className="hover-highlight"
                       onClick={() => handleVerseClick(verse)}
                     >
                       {verse.verse_txt}
                     </span>
                     {' '}
                     <span
-                      className="badge bg-primary cursor-pointer"
+                      className="verse-badge"
                       title="انتقل إلى الآية"
-                      style={{ fontSize: '0.45em', verticalAlign: 'middle' }}
                       onClick={(e) => goToVerse(e, sid, verse.verse_num)}
                     >
                       {verse.verse_num}
@@ -249,9 +237,9 @@ export default function QuranReader() {
       </Row>
 
       {/* Tafseer Modal */}
-      <Modal show={showTafseerModal} onHide={() => setShowTafseerModal(false)} size="lg" dir="rtl">
+      <Modal show={showTafseerModal} onHide={() => setShowTafseerModal(false)} size="lg" dir="rtl" className="quran-modal">
         <Modal.Header closeButton>
-          <Modal.Title>
+          <Modal.Title style={{ fontFamily: 'Amiri, serif' }}>
             تفسير الآية {selectedVerse?.verse_num}
           </Modal.Title>
         </Modal.Header>
@@ -269,7 +257,7 @@ export default function QuranReader() {
               </Nav.Item>
             ))}
           </Nav>
-          <div className="p-3" style={{ minHeight: '200px', lineHeight: '2' }}>
+          <div className="p-3 quran-tafseer-content" style={{ minHeight: '200px' }}>
             {tafseerContent}
           </div>
         </Modal.Body>

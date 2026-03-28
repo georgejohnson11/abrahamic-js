@@ -78,9 +78,9 @@ export default function BibleReader() {
   const nextChapter = cid < chaptersCount ? cid + 1 : null
 
   return (
-    <Row>
+    <Row className="bible-page">
       {/* Sidebar */}
-      <Col md={3} className="mb-4">
+      <Col md={3} className="mb-4 bible-sidebar">
         <Card>
           <Card.Header className="d-flex justify-content-between align-items-center">
             <span>Books</span>
@@ -89,14 +89,13 @@ export default function BibleReader() {
             </Button>
           </Card.Header>
           <Card.Body className="p-0">
-            <ListGroup variant="flush" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+            <ListGroup variant="flush" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
               {books.map(book => (
                 <ListGroup.Item
                   key={book.id}
                   active={book.id === bid}
                   action
                   onClick={() => navigate(`/bible/${book.id}/1`)}
-                  style={{ cursor: 'pointer' }}
                 >
                   {book.name}
                 </ListGroup.Item>
@@ -121,9 +120,7 @@ export default function BibleReader() {
               {searching ? 'Searching…' : 'Search'}
             </Button>
             {searchResults !== null && (
-              <Button variant="outline-secondary" onClick={clearSearch}>
-                Clear
-              </Button>
+              <Button variant="outline-secondary" onClick={clearSearch}>Clear</Button>
             )}
           </Form.Group>
         </Form>
@@ -131,8 +128,8 @@ export default function BibleReader() {
         {/* Search results */}
         {searchResults !== null ? (
           <div>
-            <h5 className="mb-3">
-              Found <Badge bg="primary">{searchResults.length}</Badge> results for "{searchQuery}"
+            <h5 className="mb-3" style={{ fontFamily: 'Cinzel, serif', color: '#3e1a28' }}>
+              Found <Badge style={{ background: '#5c2d40' }}>{searchResults.length}</Badge> results for "{searchQuery}"
             </h5>
             {searchResults.length === 0 ? (
               <Alert variant="warning">No verses found.</Alert>
@@ -141,12 +138,11 @@ export default function BibleReader() {
                 {searchResults.map((verse, idx) => (
                   <div
                     key={idx}
-                    className="verse mb-3 p-2 border-start border-primary"
-                    style={{ cursor: 'pointer' }}
+                    className="bible-search-result mb-3 p-2"
                     onClick={() => navigate(`/bible/${verse.Book}/${verse.Chapter}`)}
                   >
-                    <div className="text-muted small mb-1">
-                      {verse.book_name} {verse.Chapter}:{verse.verse_number}
+                    <div className="bible-search-ref mb-1">
+                      {verse.book_name} — Chapter {verse.Chapter}, Verse {verse.verse_number}
                     </div>
                     <span>{verse.text}</span>
                   </div>
@@ -159,34 +155,35 @@ export default function BibleReader() {
         ) : (
           <>
             {/* Chapter header */}
-            <div className="mb-4">
-              <h1>{bookInfo?.name}</h1>
-              <p className="text-muted">Chapter {cid}</p>
-            </div>
-
-            {/* Font control */}
-            <div className="mb-4 d-flex align-items-center gap-3">
-              <label>Font Size:</label>
-              <input
-                type="range"
-                min="14"
-                max="28"
-                value={fontSize}
-                onChange={(e) => {
-                  const size = parseInt(e.target.value)
-                  setFontSize(size)
-                  localStorage.setItem('bible-font-size', size)
-                }}
-                className="form-range"
-                style={{ width: '150px' }}
-              />
-              <span>{fontSize}px</span>
+            <div className="mb-4 d-flex justify-content-between align-items-end">
+              <div>
+                <h1 className="bible-book-title">{bookInfo?.name}</h1>
+                <p className="bible-chapter-label mb-0">Chapter {cid}</p>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <label className="text-muted small mb-0" style={{ fontFamily: 'Lora, serif' }}>Font:</label>
+                <input
+                  type="range"
+                  min="14"
+                  max="28"
+                  value={fontSize}
+                  onChange={(e) => {
+                    const size = parseInt(e.target.value)
+                    setFontSize(size)
+                    localStorage.setItem('bible-font-size', size)
+                  }}
+                  className="form-range mb-0"
+                  style={{ width: '100px' }}
+                />
+                <span className="text-muted small">{fontSize}px</span>
+              </div>
             </div>
 
             {/* Chapter navigation */}
             <div className="mb-4 d-flex gap-2 align-items-start">
               <Button
                 variant="outline-secondary"
+                size="sm"
                 disabled={!prevChapter}
                 onClick={() => navigate(`/bible/${bid}/${prevChapter}`)}
               >
@@ -206,6 +203,7 @@ export default function BibleReader() {
               </div>
               <Button
                 variant="outline-secondary"
+                size="sm"
                 disabled={!nextChapter}
                 onClick={() => navigate(`/bible/${bid}/${nextChapter}`)}
               >
@@ -216,8 +214,8 @@ export default function BibleReader() {
             {/* Verses */}
             <div className="verses-container" style={{ fontSize: `${fontSize}px` }}>
               {verses.map((verse, idx) => (
-                <div key={idx} className="verse mb-3 p-2 border-start border-primary">
-                  <sup className="text-primary fw-bold">{verse.verse_number}</sup>
+                <div key={idx} className="verse mb-3 p-2">
+                  <sup>{verse.verse_number}</sup>
                   {' '}
                   <span>{verse.text}</span>
                 </div>
