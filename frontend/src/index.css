@@ -30,13 +30,17 @@ body {
   font-size: 0.9rem;
   letter-spacing: 0.08em;
   padding: 0.4rem 1rem !important;
-  border-radius: 4px;
   transition: color 0.2s, background 0.2s;
 }
 
 .app-navbar .nav-link:hover {
   color: #c9a84c !important;
   background: rgba(201, 168, 76, 0.1);
+}
+
+/* ── Navbar collapse visible on all screens ── */
+.app-navbar .navbar-collapse {
+  display: flex !important;
 }
 
 /* ── Welcome page ── */
@@ -64,7 +68,6 @@ body {
   color: #2c1a0e;
   font-family: 'Cinzel', serif;
   font-size: 1rem;
-  border-radius: 4px;
   text-decoration: none;
   transition: background 0.2s, color 0.2s;
 }

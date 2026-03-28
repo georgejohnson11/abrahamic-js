@@ -1,65 +1,104 @@
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
 
 export class BibleDB {
   constructor(dbPath) {
-    this.db = new Database(dbPath);
-    this.db.pragma('journal_mode = WAL');
+    this.db = new sqlite3.Database(dbPath);
   }
 
   getAllBooks() {
-    return this.db.prepare(
-      'SELECT id, name FROM books ORDER BY id ASC'
-    ).all();
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT id, name FROM books ORDER BY id ASC',
+        (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        }
+      );
+    });
   }
 
   getBookInfo(bookId) {
-    return this.db.prepare(
-      'SELECT id, name FROM books WHERE id = ? LIMIT 1'
-    ).get(bookId);
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT id, name FROM books WHERE id = ? LIMIT 1',
+        [bookId],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
   }
 
   getChaptersCount(bookId) {
-    const result = this.db.prepare(
-      'SELECT MAX(Chapter) AS n FROM bible WHERE Book = ?'
-    ).get(bookId);
-    return result?.n || 0;
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT MAX(Chapter) AS n FROM bible WHERE Book = ?',
+        [bookId],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result?.n || 0);
+        }
+      );
+    });
   }
 
   getVerses(bookId, chapter) {
-    return this.db.prepare(`
-      SELECT Book,
-             Chapter,
-             Versecount AS verse_number,
-             verse AS text
-      FROM bible
-      WHERE Book = ? AND Chapter = ?
-      ORDER BY Versecount ASC
-    `).all(bookId, chapter);
+    return new Promise((resolve, reject) => {
+      this.db.all(`
+        SELECT Book,
+               Chapter,
+               Versecount AS verse_number,
+               verse AS text
+        FROM bible
+        WHERE Book = ? AND Chapter = ?
+        ORDER BY Versecount ASC
+      `, [bookId, chapter], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
   }
 
   searchVerses(term, limit = 100, offset = 0) {
-    return this.db.prepare(`
-      SELECT b.Book,
-             b.Chapter,
-             b.Versecount AS verse_number,
-             b.verse AS text,
-             bo.name AS book_name
-      FROM bible b
-      JOIN books bo ON b.Book = bo.id
-      WHERE b.verse LIKE ?
-      ORDER BY b.Book ASC, b.Chapter ASC, b.Versecount ASC
-      LIMIT ? OFFSET ?
-    `).all('%' + term + '%', limit, offset);
+    return new Promise((resolve, reject) => {
+      this.db.all(`
+        SELECT b.Book,
+               b.Chapter,
+               b.Versecount AS verse_number,
+               b.verse AS text,
+               bo.name AS book_name
+        FROM bible b
+        JOIN books bo ON b.Book = bo.id
+        WHERE b.verse LIKE ?
+        ORDER BY b.Book ASC, b.Chapter ASC, b.Versecount ASC
+        LIMIT ? OFFSET ?
+      `, ['%' + term + '%', limit, offset], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
   }
 
   countSearchResults(term) {
-    const result = this.db.prepare(
-      'SELECT COUNT(*) as count FROM bible WHERE verse LIKE ?'
-    ).get('%' + term + '%');
-    return result?.count || 0;
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT COUNT(*) as count FROM bible WHERE verse LIKE ?',
+        ['%' + term + '%'],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result?.count || 0);
+        }
+      );
+    });
   }
 
   close() {
-    this.db.close();
+    return new Promise((resolve, reject) => {
+      this.db.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
   }
 }

@@ -9,8 +9,7 @@ export default function App() {
     <>
       <Navbar expand="lg" className="app-navbar mb-4">
         <Container>
-          <Navbar.Brand href="/">📖 Abrahamic</Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Brand href="/">Abrahamic</Navbar.Brand>
           <Navbar.Collapse id="basic-navbar-nav">
             <nav className="ms-auto d-flex">
               <Link to="/bible/0/1" className="nav-link">Bible</Link>

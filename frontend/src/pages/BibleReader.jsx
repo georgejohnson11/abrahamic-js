@@ -18,6 +18,7 @@ export default function BibleReader() {
   const [theme, setTheme] = useState('light')
   const [loading, setLoading] = useState(false)
   const [searching, setSearching] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     bibleAPI.getBooks().then(res => setBooks(res.data)).catch(console.error)
@@ -79,14 +80,26 @@ export default function BibleReader() {
 
   return (
     <Row className="bible-page">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="bible-sidebar-overlay d-md-none" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <Col md={3} className="mb-4 bible-sidebar">
+      <Col md={3} className={`mb-4 bible-sidebar ${sidebarOpen ? 'bible-sidebar--open' : ''}`}>
         <Card>
           <Card.Header className="d-flex justify-content-between align-items-center">
             <span>Books</span>
-            <Button variant="link" size="sm" onClick={toggleTheme} className="p-0">
-              {theme === 'light' ? '🌙' : '☀️'}
-            </Button>
+            <div className="d-flex align-items-center gap-2">
+              <Button variant="link" size="sm" onClick={toggleTheme} className="p-0">
+                {theme === 'light' ? '🌙' : '☀️'}
+              </Button>
+              <button
+                className="bible-sidebar-close d-md-none"
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Close"
+              >✕</button>
+            </div>
           </Card.Header>
           <Card.Body className="p-0">
             <ListGroup variant="flush" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
@@ -95,7 +108,7 @@ export default function BibleReader() {
                   key={book.id}
                   active={book.id === bid}
                   action
-                  onClick={() => navigate(`/bible/${book.id}/1`)}
+                  onClick={() => { navigate(`/bible/${book.id}/1`); setSidebarOpen(false) }}
                 >
                   {book.name}
                 </ListGroup.Item>
@@ -110,6 +123,14 @@ export default function BibleReader() {
         {/* Search form */}
         <Form onSubmit={handleSearch} className="mb-4">
           <Form.Group className="d-flex gap-2">
+            <button
+              className="bible-hamburger d-flex d-md-none"
+              onClick={() => setSidebarOpen(o => !o)}
+              aria-label="Books menu"
+              type="button"
+            >
+              <span /><span /><span />
+            </button>
             <Form.Control
               type="text"
               placeholder="Search verses..."

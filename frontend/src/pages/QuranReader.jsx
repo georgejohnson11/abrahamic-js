@@ -21,6 +21,7 @@ export default function QuranReader() {
   const [tafseerContent, setTafseerContent] = useState('')
   const [showTafseerModal, setShowTafseerModal] = useState(false)
   const [selectedVerse, setSelectedVerse] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -110,11 +111,23 @@ export default function QuranReader() {
 
   return (
     <div dir="rtl" className="quran-page">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="quran-sidebar-overlay d-md-none" onClick={() => setSidebarOpen(false)} />
+      )}
+
       <Row>
-        {/* Sidebar */}
-        <Col md={3} className="mb-4 quran-sidebar">
+        {/* Sidebar — always visible on md+, drawer on mobile */}
+        <Col md={3} className={`mb-4 quran-sidebar ${sidebarOpen ? 'quran-sidebar--open' : ''}`}>
           <Card>
-            <Card.Header>السور</Card.Header>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <span>السور</span>
+              <button
+                className="quran-sidebar-close d-md-none"
+                onClick={() => setSidebarOpen(false)}
+                aria-label="إغلاق"
+              >✕</button>
+            </Card.Header>
             <Card.Body className="p-0">
               <ListGroup variant="flush" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
                 {surahs.map(surah => (
@@ -122,7 +135,7 @@ export default function QuranReader() {
                     key={surah.suraid}
                     active={surah.suraid === sid}
                     action
-                    onClick={() => navigate(`/quran/${surah.suraid}`)}
+                    onClick={() => { navigate(`/quran/${surah.suraid}`); setSidebarOpen(false) }}
                   >
                     {surah.name_ar}
                   </ListGroup.Item>
@@ -137,6 +150,14 @@ export default function QuranReader() {
           {/* Search form */}
           <Form onSubmit={handleSearch} className="mb-4">
             <Form.Group className="d-flex gap-2">
+              <button
+                className="quran-hamburger d-flex d-md-none"
+                onClick={() => setSidebarOpen(o => !o)}
+                aria-label="قائمة السور"
+                type="button"
+              >
+                <span /><span /><span />
+              </button>
               <Form.Control
                 type="text"
                 placeholder="ابحث في القرآن…"
@@ -146,9 +167,6 @@ export default function QuranReader() {
               <Button variant="primary" type="submit" disabled={searching}>
                 {searching ? '…' : 'بحث'}
               </Button>
-              {searchResults !== null && (
-                <Button variant="outline-secondary" onClick={clearSearch}>مسح</Button>
-              )}
             </Form.Group>
           </Form>
 
@@ -172,7 +190,7 @@ export default function QuranReader() {
                           className="verse-badge"
                           title="انتقل إلى السورة"
                           onClick={(e) => goToVerse(e, verse.suranum, verse.versenum)}
-                          style={{ width: 'auto', borderRadius: '12px', padding: '0 0.5em', fontSize: '0.55em' }}
+                          style={{ width: 'auto', padding: '0 0.5em', fontSize: '0.55em' }}
                         >
                           آية {verse.versenum}
                         </span>
