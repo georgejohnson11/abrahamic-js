@@ -1,41 +1,40 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Row, Col, Button, Form, ListGroup, Card, Alert } from 'react-bootstrap'
+import { Row, Col, Button, Form, ListGroup, Card, Alert, Badge } from 'react-bootstrap'
 import { bibleAPI } from '../api'
 import '../styles/BibleReader.css'
 
 export default function BibleReader() {
-  const { bookId = '1', chapterId = '1' } = useParams()
+  const { bookId = '0', chapterId = '1' } = useParams()
   const navigate = useNavigate()
-  
+
   const [books, setBooks] = useState([])
   const [verses, setVerses] = useState([])
   const [chaptersCount, setChaptersCount] = useState(0)
   const [bookInfo, setBookInfo] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState([])
+  const [searchResults, setSearchResults] = useState(null)
   const [fontSize, setFontSize] = useState(20)
   const [theme, setTheme] = useState('light')
   const [loading, setLoading] = useState(false)
+  const [searching, setSearching] = useState(false)
 
-  // Load books on mount
   useEffect(() => {
     bibleAPI.getBooks().then(res => setBooks(res.data)).catch(console.error)
   }, [])
 
-  // Load theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('bible-theme') || 'light'
     setTheme(saved)
     document.documentElement.setAttribute('data-bs-theme', saved)
   }, [])
 
-  // Load chapter data
   useEffect(() => {
     const bid = parseInt(bookId)
     const cid = parseInt(chapterId)
-    
     setLoading(true)
+    setSearchResults(null)
+    setSearchQuery('')
     Promise.all([
       bibleAPI.getBook(bid),
       bibleAPI.getChaptersCount(bid),
@@ -50,14 +49,20 @@ export default function BibleReader() {
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
-    
+    setSearching(true)
     try {
       const res = await bibleAPI.search(searchQuery)
       setSearchResults(res.data)
-      navigate('/bible/search')
     } catch (error) {
       console.error(error)
+    } finally {
+      setSearching(false)
     }
+  }
+
+  const clearSearch = () => {
+    setSearchResults(null)
+    setSearchQuery('')
   }
 
   const toggleTheme = () => {
@@ -77,9 +82,9 @@ export default function BibleReader() {
       {/* Sidebar */}
       <Col md={3} className="mb-4">
         <Card>
-          <Card.Header className="d-flex justify-content-between">
+          <Card.Header className="d-flex justify-content-between align-items-center">
             <span>Books</span>
-            <Button variant="link" size="sm" onClick={toggleTheme}>
+            <Button variant="link" size="sm" onClick={toggleTheme} className="p-0">
               {theme === 'light' ? '🌙' : '☀️'}
             </Button>
           </Card.Header>
@@ -89,6 +94,7 @@ export default function BibleReader() {
                 <ListGroup.Item
                   key={book.id}
                   active={book.id === bid}
+                  action
                   onClick={() => navigate(`/bible/${book.id}/1`)}
                   style={{ cursor: 'pointer' }}
                 >
@@ -111,11 +117,44 @@ export default function BibleReader() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Button variant="primary" type="submit">Search</Button>
+            <Button variant="primary" type="submit" disabled={searching}>
+              {searching ? 'Searching…' : 'Search'}
+            </Button>
+            {searchResults !== null && (
+              <Button variant="outline-secondary" onClick={clearSearch}>
+                Clear
+              </Button>
+            )}
           </Form.Group>
         </Form>
 
-        {loading ? (
+        {/* Search results */}
+        {searchResults !== null ? (
+          <div>
+            <h5 className="mb-3">
+              Found <Badge bg="primary">{searchResults.length}</Badge> results for "{searchQuery}"
+            </h5>
+            {searchResults.length === 0 ? (
+              <Alert variant="warning">No verses found.</Alert>
+            ) : (
+              <div className="verses-container" style={{ fontSize: `${fontSize}px` }}>
+                {searchResults.map((verse, idx) => (
+                  <div
+                    key={idx}
+                    className="verse mb-3 p-2 border-start border-primary"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => navigate(`/bible/${verse.Book}/${verse.Chapter}`)}
+                  >
+                    <div className="text-muted small mb-1">
+                      {verse.book_name} {verse.Chapter}:{verse.verse_number}
+                    </div>
+                    <span>{verse.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : loading ? (
           <Alert variant="info">Loading...</Alert>
         ) : (
           <>
@@ -145,7 +184,7 @@ export default function BibleReader() {
             </div>
 
             {/* Chapter navigation */}
-            <div className="mb-4 d-flex gap-2">
+            <div className="mb-4 d-flex gap-2 align-items-start">
               <Button
                 variant="outline-secondary"
                 disabled={!prevChapter}

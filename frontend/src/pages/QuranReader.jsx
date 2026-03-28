@@ -1,26 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Row, Col, Button, Form, ListGroup, Card, Alert, Modal } from 'react-bootstrap'
+import { Row, Col, Button, Form, ListGroup, Card, Alert, Modal, Badge } from 'react-bootstrap'
 import { quranAPI } from '../api'
 import '../styles/QuranReader.css'
 
 export default function QuranReader() {
   const { surahId = '1' } = useParams()
   const navigate = useNavigate()
-  
+
   const [surahs, setSurahs] = useState([])
   const [verses, setVerses] = useState([])
   const [tafseerBooks, setTafseerBooks] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [searching, setSearching] = useState(false)
   const [fontSize, setFontSize] = useState(28)
   const [loading, setLoading] = useState(false)
-  
+
   const [selectedTafseerBook, setSelectedTafseerBook] = useState(1)
   const [tafseerContent, setTafseerContent] = useState('')
   const [showTafseerModal, setShowTafseerModal] = useState(false)
   const [selectedVerse, setSelectedVerse] = useState(null)
 
-  // Load surahs and tafseer books
   useEffect(() => {
     Promise.all([
       quranAPI.getSurahs(),
@@ -31,10 +32,11 @@ export default function QuranReader() {
     }).catch(console.error)
   }, [])
 
-  // Load verses
   useEffect(() => {
     const sid = parseInt(surahId)
     setLoading(true)
+    setSearchResults(null)
+    setSearchQuery('')
     quranAPI.getVerses(sid)
       .then(res => setVerses(res.data))
       .catch(console.error)
@@ -49,18 +51,31 @@ export default function QuranReader() {
         selectedTafseerBook,
         verse.verse_num
       )
-      setTafseerContent(res.data.tafseer || 'No tafseer available')
+      setTafseerContent(res.data.tafseer || 'لا يوجد تفسير متاح')
       setShowTafseerModal(true)
     } catch (error) {
       console.error(error)
-      setTafseerContent('Error loading tafseer')
+      setTafseerContent('حدث خطأ في تحميل التفسير')
     }
   }
 
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
-    // Implement search results view
+    setSearching(true)
+    try {
+      const res = await quranAPI.search(searchQuery)
+      setSearchResults(res.data)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const clearSearch = () => {
+    setSearchResults(null)
+    setSearchQuery('')
   }
 
   const sid = parseInt(surahId)
@@ -79,6 +94,7 @@ export default function QuranReader() {
                   <ListGroup.Item
                     key={surah.suraid}
                     active={surah.suraid === sid}
+                    action
                     onClick={() => navigate(`/quran/${surah.suraid}`)}
                     style={{ cursor: 'pointer' }}
                   >
@@ -101,11 +117,46 @@ export default function QuranReader() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button variant="primary" type="submit">بحث</Button>
+              <Button variant="primary" type="submit" disabled={searching}>
+                {searching ? '…' : 'بحث'}
+              </Button>
+              {searchResults !== null && (
+                <Button variant="outline-secondary" onClick={clearSearch}>
+                  مسح
+                </Button>
+              )}
             </Form.Group>
           </Form>
 
-          {loading ? (
+          {/* Search results */}
+          {searchResults !== null ? (
+            <div>
+              <h5 className="mb-3">
+                نتائج البحث: <Badge bg="primary">{searchResults.count}</Badge>
+              </h5>
+              {searchResults.count === 0 ? (
+                <Alert variant="warning">لا توجد نتائج.</Alert>
+              ) : (
+                <div className="quran-verses" style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}>
+                  {searchResults.results.map((verse, idx) => (
+                    <div
+                      key={idx}
+                      className="verse mb-3 p-2"
+                      style={{ cursor: 'pointer', borderRight: '3px solid #0d6efd' }}
+                      onClick={() => navigate(`/quran/${verse.suranum}`)}
+                    >
+                      <div className="text-muted small mb-1" style={{ fontSize: '0.7em' }}>
+                        {verse.suraname} — آية {verse.versenum}
+                      </div>
+                      <span
+                        dangerouslySetInnerHTML={{ __html: verse.verse_txt_highlighted }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : loading ? (
             <Alert variant="info">جاري التحميل…</Alert>
           ) : (
             <>
