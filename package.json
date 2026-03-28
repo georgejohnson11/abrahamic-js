@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/georgejohnson11/abrahamic-js/issues"
   },
-  "homepage": "https://github.com/georgejohnson11/abrahamic-js#readme"
+  "homepage": "https://github.com/georgejohnson11/abrahamic-js#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
